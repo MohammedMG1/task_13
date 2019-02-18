@@ -1,19 +1,36 @@
 from django.shortcuts import render, redirect
-from .models import Restaurant, Item
+from .models import Restaurant, Item, Like
 from .forms import RestaurantForm, ItemForm, SignupForm, SigninForm
 from django.contrib.auth import login, authenticate, logout
 from django.db.models import Q
+from django.http import JsonResponse
 
 # This view will be used to favorite a restaurant
 def restaurant_favorite(request, restaurant_id):
-    
-    return
+    restaurant = Restaurant.objects.get(id=restaurant_id)
+    like_obj, created = Like.objects.get_or_create(user=request.user, restaurant= restaurant)
+    if created:
+        like= True
+    else:
+        like=False
+        like_obj.delete()
+    response = {
+        "like": like,
+    }
+    return JsonResponse(response)
 
 
 # This view will be used to display only restaurants a user has favorited
 def favorite_restaurants(request):
+    restaurant = Restaurant.objects.all()
+    liked_restaurant =Like.objects.filter(user=request.user).values_list('restaurant_id', flat=True)
+
+    context={
+        "restaurant":restaurant,
+        'liked_restaurant':liked_restaurant,
+    }
     
-    return
+    return render (request, "list.html", context)
 
 
 def no_access(request):
@@ -72,8 +89,11 @@ def restaurant_list(request):
             Q(owner__username__icontains=query)
         ).distinct()
         #############
+    liked_restaurant =Like.objects.filter(user=request.user).values_list('restaurant_id', flat=True)
+
     context = {
-       "restaurants": restaurants
+       "restaurants": restaurants,
+       "liked_restaurant":liked_restaurant,
     }
     return render(request, 'list.html', context)
 

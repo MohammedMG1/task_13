@@ -21,6 +21,8 @@
           {% endif %}
           <div class="card-body">
             <h5 class="card-title">{{restaurant.name}}</h5>
+            <button class= "btn btn-light {% if restaurant.id in liked_restaurant %} text-danger{% endif %}"
+             onClick="like_me({{restaurant.id}})"><i class="fas fa-heart"></i></button>
             <p class="card-text">{{restaurant.description|truncatechars:25}}</p>
           </div>
           <ul class="list-group list-group-flush">
@@ -32,5 +34,30 @@
     </div>
     {% endfor %}
 </div>
+<script>
+function like_me(id){
+  let button_id="#" +id;
+  console.log(button_id)
+  $.ajax({
+    type:"GET",
+    url:'/restaurants/'+id+'/favorite/',
+    success: function(data){
+      console.log(data)
+      if(data.like){
+        console.log("liked")
+        $(button_id).addClass('text-danger');
+      }else{
+        console.log("unliked")
+         $(button_id).removeClass('text-danger');
+      }
+    },
+    error: function(error){
+      console.log(error)
+    },
+  })
+
+
+}
+</script>
 {% endblock content %}
 
