@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Restaurant, Item, Like
+from .models import Restaurant, Item, FavoriteRestaurant
 from .forms import RestaurantForm, ItemForm, SignupForm, SigninForm
 from django.contrib.auth import login, authenticate, logout
 from django.db.models import Q
@@ -7,35 +7,30 @@ from django.http import JsonResponse
 
 # This view will be used to favorite a restaurant
 def restaurant_favorite(request, restaurant_id):
-    restaurant = Restaurant.objects.get(id=restaurant_id)
-    like_obj, created = Like.objects.get_or_create(user=request.user, restaurant= restaurant)
+    restaurant_obj = Restaurant.objects.get(id=restaurant_id)
+    fav, created = FavoriteRestaurant.objects.get_or_create(user=request.user, restaurant= restaurant_obj)
     if created:
-        like= True
+        action= "favorite"
     else:
-        like=False
-        like_obj.delete()
+        action= "unfavorite"
+        fav.delete()
     response = {
-        "like": like,
+        "action": action,
+      
     }
     return JsonResponse(response)
 
 
+
 # This view will be used to display only restaurants a user has favorited
 def favorite_restaurants(request):
-    restaurant = Restaurant.objects.all()
-    
-    if created:
-        action ="like"
-    else:
-        action ="dislike"
-        like_obj.delete()
-
+    if request.user.is_anonymous:
+        return redirect('signin')
+    favs = request.user.favs.all()
     context={
-        "restaurant":restaurant,
-        "action": action
+        "favorite_restaurants":favs,
     }
-    
-    return render (request, "list.html", context)
+    return render (request, "favorite_restaurants.html", context)
 
 
 def no_access(request):
@@ -94,13 +89,14 @@ def restaurant_list(request):
             Q(owner__username__icontains=query)
         ).distinct()
         #############
-    liked_restaurant = []
-    if not request.user.is_anonymous:
-        liked_restaurant = Like.objects.filter(user=request.user).values_list('restaurant_id', flat=True)
+    favorite_restaurants = []
+    if request.user.is_authenticated:
+        favorite_restaurants = request.user.favs.all().values_list('restaurant', flat=True)
 
     context = {
        "restaurants": restaurants,
-       "liked_restaurant":liked_restaurant,
+       "fav_res": favorite_restaurants,
+       
     }
     return render(request, 'list.html', context)
 

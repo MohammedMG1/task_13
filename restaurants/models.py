@@ -24,10 +24,6 @@ class Item(models.Model):
 
 
 class FavoriteRestaurant(models.Model):
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='favs')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favs')
 
-
-class Like(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE)
