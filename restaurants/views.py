@@ -23,11 +23,16 @@ def restaurant_favorite(request, restaurant_id):
 # This view will be used to display only restaurants a user has favorited
 def favorite_restaurants(request):
     restaurant = Restaurant.objects.all()
-    liked_restaurant =Like.objects.filter(user=request.user).values_list('restaurant_id', flat=True)
+    
+    if created:
+        action ="like"
+    else:
+        action ="dislike"
+        like_obj.delete()
 
     context={
         "restaurant":restaurant,
-        'liked_restaurant':liked_restaurant,
+        "action": action
     }
     
     return render (request, "list.html", context)
@@ -89,7 +94,9 @@ def restaurant_list(request):
             Q(owner__username__icontains=query)
         ).distinct()
         #############
-    liked_restaurant =Like.objects.filter(user=request.user).values_list('restaurant_id', flat=True)
+    liked_restaurant = []
+    if not request.user.is_anonymous:
+        liked_restaurant = Like.objects.filter(user=request.user).values_list('restaurant_id', flat=True)
 
     context = {
        "restaurants": restaurants,
